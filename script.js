@@ -96,13 +96,14 @@ acceptBtn.addEventListener("click", () => {
 });
 
 // Privacy Policy Modal
-const openPrivacyBtn = document.getElementById("openPrivacy");
 const privacyModal = document.getElementById("privacyModal");
 const closePrivacyBtn = document.querySelector(".close-modal");
 
-openPrivacyBtn.addEventListener("click", (e) => {
-  e.preventDefault();
-  privacyModal.classList.remove("hidden");
+document.querySelectorAll(".openPrivacy").forEach(btn => {
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    privacyModal.classList.remove("hidden");
+  });
 });
 
 closePrivacyBtn.addEventListener("click", () => {
@@ -139,6 +140,8 @@ const revealObs = new IntersectionObserver((entries, obs) => {
 }, { threshold: 0.2 });
 
 revealEls.forEach(el => revealObs.observe(el));
+
+
 
 
 
