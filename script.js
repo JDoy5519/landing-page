@@ -81,3 +81,64 @@ const fadeEls = document.querySelectorAll('.fade-in-up');
   });
 
 fadeEls.forEach(el => observer.observe(el));
+
+//COOKIE BANNER LOGIC
+const cookieBanner = document.getElementById("cookie-banner");
+const acceptBtn = document.getElementById("acceptCookies");
+
+if (!localStorage.getItem("cookiesAccepted")) {
+  cookieBanner.style.display = "flex";
+}
+
+acceptBtn.addEventListener("click", () => {
+  localStorage.setItem("cookiesAccepted", "true");
+  cookieBanner.style.display = "none";
+});
+
+// Privacy Policy Modal
+const openPrivacyBtn = document.getElementById("openPrivacy");
+const privacyModal = document.getElementById("privacyModal");
+const closePrivacyBtn = document.querySelector(".close-modal");
+
+openPrivacyBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  privacyModal.classList.remove("hidden");
+});
+
+closePrivacyBtn.addEventListener("click", () => {
+  privacyModal.classList.add("hidden");
+});
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    privacyModal.classList.add("hidden");
+  }
+});
+
+//Sticky CTA Logic
+const stickyCta = document.querySelector(".sticky-cta");
+const heroSection = document.querySelector(".hero-section");
+
+window.addEventListener("scroll", () => {
+  const heroBottom = heroSection.offsetTop + heroSection.offsetHeight;
+  if (window.scrollY > heroBottom - 50) {
+    stickyCta.classList.add("visible");
+  } else {
+    stickyCta.classList.remove("visible");
+  }
+});
+
+// Reveal-on-scroll for cards
+const revealEls = document.querySelectorAll('.reveal');
+const revealObs = new IntersectionObserver((entries, obs) => {
+  entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    entry.target.classList.add('is-visible');
+    obs.unobserve(entry.target);
+  });
+}, { threshold: 0.2 });
+
+revealEls.forEach(el => revealObs.observe(el));
+
+
+
