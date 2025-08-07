@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visible Legal Marketing</title>
+    <title>Visible Legal Marketing | Mis-Sold Claims Support</title>
+    <meta name="description" content="Visible Legal Marketing is an FCA-regulated company helping clients reclaim money from mis-sold IVAs, car finance, and business energy contracts." />
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans&family=Poppins:wght@700&display=swap" rel="stylesheet">
 </head>
@@ -34,7 +35,7 @@
             <a href="#">Home</a>
             <a href="#services">Our Services</a> <!--Input a scroll into here rather than it be a link-->
             <a href="#about">About Us</a>
-            <a href="#contact">Contact</a>
+            <a href="#register">Make a Claim</a>
             </nav>
         </div>
     </header>
@@ -225,7 +226,7 @@
   <section class="interest-form-section">
     <div class="container">
       <h2 class="section-title">Register Your Interest in Making a Claim</h2>
-      <form action="https://formsubmit.co/your@email.com" method="POST" class="interest-form" id="claimForm">
+      <form action="https://formsubmit.co/josh@jdhreports.co.uk" method="POST" class="interest-form" id="claimForm">
         
         <div class="form-group">
           <label for="fullName">Full Name*</label>
@@ -250,10 +251,16 @@
             <option value="Car Finance">Car Finance</option>
             <option value="Business Energy">Business Energy</option>
           </select>
-          <p id="ivaHelper" class="helper-text hidden">
-            Your IVA reference number can usually be found on the original welcome letter, any provider communication, or your credit file. If you don’t have it to hand, just leave this blank.
+        </div>
+
+        <div class="form-group hidden" id="ivaRefGroup">
+          <label for="ivaRef">IVA Reference Number <span style="font-weight:normal">(optional)</span></label>
+          <input type="text" id="ivaRef" name="IVA Reference Number" />
+          <p class="helper-text">
+            You can usually find this on the original welcome letter, provider emails, or your credit file. If you don't have it to hand, just leave this blank.
           </p>
         </div>
+
 
         <div class="form-group">
           <label for="message">Optional Notes</label>

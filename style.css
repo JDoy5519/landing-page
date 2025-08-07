@@ -182,7 +182,7 @@ p {
 /* Hide/show utility class */
 
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 /* Hero section */
@@ -489,6 +489,65 @@ p {
   opacity: 1;
   transform: translateY(0);
 }
+
+/* Interest Form Section */
+.interest-form-section {
+  background-color: var(--card-bg);
+  padding: 4rem 1.5rem;
+}
+
+.interest-form {
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--input-border);
+  background-color: var(--input-bg);
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--input-focus);
+}
+
+.helper-text {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.5rem;
+}
+
+.thank-you-message {
+  text-align: center;
+  font-size: 1rem;
+  color: var(--success);
+  margin-top: 1rem;
+}
+
+
 
 /*About Us Section*/
 
