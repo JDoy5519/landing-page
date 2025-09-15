@@ -27,9 +27,9 @@
             <div class="cta-dropdown">
                 <button class="cta-button">Start Your Claim ▼</button>
                 <ul class="dropdown-menu hidden">
-                <li><a href="#">IVA Claim</a></li>
-                <li><a href="#">Car Finance Claim</a></li>
-                <li><a href="#">Business Energy Claim</a></li>
+                <li><a href="https://iva-checker.netlify.app/">IVA Claim</a></li>
+                <li><a href="#coming-soon" data-open-modal="comingsoon">Car Finance Claim</a></li>
+                <li><a href="#coming-soon" data-open-modal="comingsoon">Business Energy Claim</a></li>
                 </ul>
             </div>
             </div>
@@ -53,9 +53,9 @@
                 Visible Legal Marketing is FCA-regulated and works with the best UK solicitors to help clients reclaim what they're owed.
             </p>
             <div class="cta-group">
-                <a href="#" class="cta-option">IVA Claim</a>
-                <a href="#" class="cta-option">Car Finance Claim</a>
-                <a href="#" class="cta-option">Business Energy Claim</a>
+                <a href="https://iva-checker.netlify.app/" class="cta-option">IVA Claim</a>
+                <a href="#coming-soon" class="cta-option" data-open-modal="comingsoon">Car Finance Claim</a>
+                <a href="#coming-soon" class="cta-option" data-open-modal="comingsoon">Business Energy Claim</a>
             </div>
             </div>
             <div class="hero-image">
@@ -91,7 +91,7 @@
                 </div>
                 <h3>Car Finance Claims</h3>
                 <p>If you took out car finance with unfair commission, you may be eligible for compensation from your lender.</p>
-                <a href="#">Learn More →</a>
+                <a href="#coming-soon" data-open-modal="comingsoon">Learn More →</a>
             </div>
 
             
@@ -103,7 +103,7 @@
                 </div>
                 <h3>Business Energy Claims</h3>
                 <p>We work with solicitors to recover hidden commissions on business energy contracts.</p>
-                <a href="#">Learn More →</a>
+                <a href="#coming-soon" data-open-modal="comingsoon">Learn More →</a>
             </div>
 
             </div>
@@ -567,6 +567,50 @@
 
       <button id="close-cookie-policy" class="cta-btn" style="margin-top:1rem;">Close</button>
     </div>
+  </div>
+</div>
+
+
+  <div id="coming-soon-modal" class="comingsoon-modal" aria-hidden="true" role="dialog" aria-labelledby="comingsoon-title" aria-modal="true">
+  <!-- Backdrop must come FIRST and cover the viewport -->
+  <button class="modal-backdrop" data-close-modal aria-label="Close modal"></button>
+
+  <div class="modal-panel" role="document">
+    <button class="modal-close" data-close-modal aria-label="Close">
+      <span aria-hidden="true">×</span>
+    </button>
+
+    <div class="modal-header">
+      <div class="modal-icon" aria-hidden="true">⏳</div>
+      <h2 id="comingsoon-title">Coming soon</h2>
+      <p class="modal-sub">We’re not onboarding <strong>Car Finance</strong> or <strong>Business Energy</strong> claims yet, but you can register interest below.</p>
+    </div>
+
+    <div class="modal-content">
+      <div class="choice-grid">
+        <button type="button" class="pill" data-select-claim="Car Finance">
+          <span class="pill-title">Car Finance</span>
+          <span class="pill-sub">Register interest</span>
+        </button>
+        <button type="button" class="pill" data-select-claim="Business Energy">
+          <span class="pill-title">Business Energy</span>
+          <span class="pill-sub">Register interest</span>
+        </button>
+      </div>
+
+      <div class="divider" role="separator" aria-hidden="true"></div>
+
+      <div class="cta-row">
+        <a href="https://iva-checker.netlify.app/" class="primary-cta">
+          Explore IVA claims now
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path d="M5 12h12m0 0-4-4m4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div> <!-- ✅ CLOSE .modal-content -->
+
+    <p class="microtext">We’ll email or message you when these claim types open.</p>
   </div>
 </div>
 

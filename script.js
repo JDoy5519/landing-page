@@ -123,7 +123,8 @@ revealEls.forEach(el => revealObs.observe(el));
   const MODAL_MAP = {
     privacy: '#privacy-policy-modal',
     terms:   '#terms-modal',
-    cookie:  '#cookie-policy-modal' // ready for future use
+    cookie:  '#cookie-policy-modal', // ready for future use
+    comingsoon: '#coming-soon-modal' // <-- add this
   };
 
   function getModalEl(key) {
@@ -188,6 +189,7 @@ revealEls.forEach(el => revealObs.observe(el));
   }, true); // <-- capture phase
 })();
 
+
 // Smooth scroll for "Start your free check" link
 const scrollLink = document.getElementById("scroll-to-form");
 const formSection = document.getElementById("register");
@@ -198,6 +200,46 @@ if (scrollLink && formSection) {
     formSection.scrollIntoView({ behavior: "smooth" });
   });
 }
+
+// Shrink header on scroll
+const siteHeader = document.querySelector('.site-header');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 50) {
+    siteHeader.classList.add('shrink');
+  } else {
+    siteHeader.classList.remove('shrink');
+  }
+});
+
+let isShrunk = false;
+const SHRINK_ON  = 80; // scrollY to add .shrink
+const EXPAND_ON  = 20; // scrollY to remove .shrink
+let ticking = false;
+
+function onScroll() {
+  const y = window.scrollY || document.documentElement.scrollTop;
+
+  if (!isShrunk && y > SHRINK_ON) {
+    siteHeader.classList.add('shrink');
+    isShrunk = true;
+  } else if (isShrunk && y < EXPAND_ON) {
+    siteHeader.classList.remove('shrink');
+    isShrunk = false;
+  }
+
+  ticking = false;
+}
+
+window.addEventListener('scroll', () => {
+  if (!ticking) {
+    requestAnimationFrame(onScroll);
+    ticking = true;
+  }
+}, { passive: true });
+
+// Run once on load
+onScroll();
+
 
 /* =========================
    Cookie Consent + Analytics
@@ -305,4 +347,161 @@ if (scrollLink && formSection) {
     applyConsent(getConsent());
   });
 })();
+
+// --- Coming Soon modal: UX + accessibility helpers ---
+(function () {
+  const modal = document.getElementById('coming-soon-modal');
+  if (!modal) return;
+
+  const panel = modal.querySelector('.modal-panel');
+  const closeEls = modal.querySelectorAll('[data-close-modal]');
+  let lastFocused = null;
+
+  function getFocusable(container) {
+    return Array.from(container.querySelectorAll(
+      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+    )).filter(el => el.offsetParent !== null);
+  }
+
+  function openHook() {
+    lastFocused = document.activeElement;
+    // Move focus to first focusable in panel
+    const focusables = getFocusable(panel);
+    focusables[0]?.focus();
+  }
+
+  function closeHook() {
+    if (lastFocused && document.contains(lastFocused)) lastFocused.focus();
+  }
+
+  // Observe show/hide state changes to run hooks once
+  const observer = new MutationObserver(() => {
+    const isOpen = modal.classList.contains('show');
+    if (isOpen) openHook();
+    else closeHook();
+  });
+  observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+
+  // Close handlers
+  closeEls.forEach(el => el.addEventListener('click', () => {
+    modal.classList.remove('show');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }));
+
+  // Esc closes the modal
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('show')) {
+      e.preventDefault();
+      modal.classList.remove('show');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+    }
+  });
+
+  // Simple focus trap
+  panel.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return;
+    const focusables = getFocusable(panel);
+    if (!focusables.length) return;
+
+    const first = focusables[0];
+    const last  = focusables[focusables.length - 1];
+
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault(); last.focus();
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault(); first.focus();
+    }
+  });
+})();
+
+// --- Coming Soon → preselect claim + scroll to #register ---
+(() => {
+  const modal       = document.getElementById('coming-soon-modal');
+  const registerSec = document.getElementById('register');
+
+  if (!modal || !registerSec) return;
+
+  // Try to find a claim-type control in the register section
+  const findClaimControl = () =>
+    registerSec.querySelector('#claimType') ||
+    registerSec.querySelector('select[name="claimType"]') ||
+    registerSec.querySelector('input[type="radio"][name="claimType"]');
+
+  // Helper: set claim on <select> or radio group
+  const setClaim = (label) => {
+    const wanted = String(label).trim().toLowerCase();
+
+    // 1) <select>
+    const select = registerSec.querySelector('#claimType, select[name="claimType"]');
+    if (select) {
+      const opts = Array.from(select.options);
+      const match = opts.find(o =>
+        o.value.toLowerCase() === wanted || o.text.toLowerCase() === wanted
+      );
+      if (match) select.value = match.value;
+      // fire change for any conditional UI
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      return;
+    }
+
+    // 2) radios fallback
+    const radios = Array.from(registerSec.querySelectorAll('input[type="radio"][name="claimType"]'));
+    if (radios.length) {
+      // try value exact, value with underscores, or text content match
+      let radio =
+        radios.find(r => r.value.toLowerCase() === wanted) ||
+        radios.find(r => r.value.toLowerCase() === wanted.replace(/\s+/g, '_')) ||
+        null;
+      if (!radio) {
+        // last resort: match by label text
+        radio = radios.find(r => {
+          const lab = registerSec.querySelector(`label[for="${r.id}"]`);
+          return lab && lab.textContent.trim().toLowerCase() === wanted;
+        });
+      }
+      if (radio) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+  };
+
+  // Smooth scroll to the form, with a small offset for sticky headers if present
+  const scrollToForm = () => {
+    // If you have a sticky header, set its height here (px). Otherwise leave 0.
+    const STICKY_OFFSET = 0; // change to e.g. 72 if your header is sticky and 72px tall
+    const top = registerSec.getBoundingClientRect().top + window.pageYOffset - STICKY_OFFSET;
+    window.scrollTo({ top, behavior: 'smooth' });
+
+    // After scrolling, focus the first interactive control
+    setTimeout(() => {
+      const first = registerSec.querySelector('input, select, textarea, button');
+      first?.focus({ preventScroll: true });
+    }, 350);
+  };
+
+  modal.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-select-claim]');
+    if (!btn) return;
+
+    e.preventDefault();
+
+    // 1) Preselect claim (use data attribute or button text)
+    const label = btn.getAttribute('data-select-claim') || btn.textContent;
+    setClaim(label);
+
+    // 2) Close the modal and unlock body scroll
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+
+    // 3) Scroll to form
+    scrollToForm();
+  });
+})();
+
+
+
+
 
