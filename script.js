@@ -82,19 +82,6 @@ const fadeEls = document.querySelectorAll('.fade-in-up');
 
 fadeEls.forEach(el => observer.observe(el));
 
-//COOKIE BANNER LOGIC
-const cookieBanner = document.getElementById("cookie-banner");
-const acceptBtn = document.getElementById("acceptCookies");
-
-if (!localStorage.getItem("cookiesAccepted")) {
-  cookieBanner.style.display = "flex";
-}
-
-acceptBtn.addEventListener("click", () => {
-  localStorage.setItem("cookiesAccepted", "true");
-  cookieBanner.style.display = "none";
-});
-
 //Sticky CTA Logic
 const stickyCta = document.querySelector(".sticky-cta");
 const heroSection = document.querySelector(".hero-section");
@@ -211,3 +198,111 @@ if (scrollLink && formSection) {
     formSection.scrollIntoView({ behavior: "smooth" });
   });
 }
+
+/* =========================
+   Cookie Consent + Analytics
+   ========================= */
+(function () {
+  const BANNER_ID = 'cookie-banner';
+  const STORAGE_KEY = 'vlm_cookie_consent';
+  const POLICY_VERSION = '2025-08-15'; // bump when policy changes
+  const GA_MEASUREMENT_ID = 'G-XXXXXXXXXX'; // <-- replace with your GA4 ID
+
+  const $ = (s, c=document) => c.querySelector(s);
+
+  const bannerEl = $('#' + BANNER_ID);
+  const btnAccept = $('#acceptAnalytics');
+  const btnReject = $('#rejectAnalytics');
+
+  function getConsent() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); }
+    catch { return null; }
+  }
+
+  function setConsent(accepted) {
+    const payload = {
+      analytics: !!accepted,
+      version: POLICY_VERSION,
+      ts: new Date().toISOString()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    return payload;
+  }
+
+  function showBanner(show) {
+    if (!bannerEl) return;
+    bannerEl.style.display = show ? 'flex' : 'none';
+  }
+
+  // GA4 loader – only runs if consent.analytics === true
+  function loadAnalytics() {
+    if (!GA_MEASUREMENT_ID || window.__gaLoaded) return;
+    window.__gaLoaded = true;
+
+    // (Optional) Consent Mode v2 defaults (blocked until granted)
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('consent', 'default', {
+      'ad_user_data': 'denied',
+      'ad_personalization': 'denied',
+      'ad_storage': 'denied',
+      'analytics_storage': 'denied',
+      'functionality_storage': 'granted',
+      'security_storage': 'granted'
+    });
+
+    // Inject GA4
+    const s1 = document.createElement('script');
+    s1.async = true;
+    s1.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+    document.head.appendChild(s1);
+
+    const s2 = document.createElement('script');
+    s2.text = `
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      gtag('js', new Date());
+      gtag('consent', 'update', { 'analytics_storage': 'granted' });
+      gtag('config', '${GA_MEASUREMENT_ID}');
+    `;
+    document.head.appendChild(s2);
+  }
+
+  function applyConsent(consent) {
+    // Respect existing choice
+    if (consent?.analytics) {
+      loadAnalytics();
+    }
+    showBanner(!consent); // show banner only if no prior choice
+  }
+
+  // Wire buttons
+  btnAccept?.addEventListener('click', () => {
+    const c = setConsent(true);
+    loadAnalytics();
+    showBanner(false);
+  });
+  btnReject?.addEventListener('click', () => {
+    setConsent(false);
+    showBanner(false);
+  });
+
+  // “Change cookie settings” (in cookie modal) -> clear and show banner
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('#change-cookie-settings');
+    if (!a) return;
+    e.preventDefault();
+    localStorage.removeItem(STORAGE_KEY);
+    // Close any open modal (re-use your modal closer if present)
+    const openModals = document.querySelectorAll('.modal.show');
+    openModals.forEach(m => m.classList.remove('show'));
+    document.body.style.overflow = '';
+    showBanner(true);
+  });
+
+  // Init on load
+  document.addEventListener('DOMContentLoaded', () => {
+    applyConsent(getConsent());
+  });
+})();
+

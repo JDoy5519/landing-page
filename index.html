@@ -364,7 +364,7 @@
       <div class="footer-contact">
         <h3>Contact</h3>
         <ul>
-          <li><a href="mailto:admin@vlmclaims.co.uk">admin@vlmclaims.co.uk</a></li>
+          <li><a href="mailto:support@visiblelegal.co.uk">support@visiblelegal.co.uk</a></li>
           <li>5 Eagle Fold, Hyde, England, SK14 4GU</li>
         </ul>
       </div>
@@ -400,10 +400,17 @@
 
 
   <!--Cookie Banner-->
-  <div id="cookie-banner" class="cookie-banner">
-    <p>This website uses cookies to ensure you get the best experience. <a href="#cookie-policy-modal" data-open-modal="cookie">Learn more</a>.</p>
-    <button id="acceptCookies">Got it</button>
+  <div id="cookie-banner" class="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie consent">
+    <p>
+      This website uses cookies to ensure you get the best experience.
+      <a href="#cookie-policy-modal" data-open-modal="cookie" class="open-cookie-policy">Learn more</a>.
+    </p>
+    <div class="cookie-actions">
+      <button id="rejectAnalytics" class="btn-secondary">Reject analytics</button>
+      <button id="acceptAnalytics" class="btn-primary">Accept analytics</button>
+    </div>
   </div>
+
 
   <!-- Privacy Policy Modal -->
     <div id="privacy-policy-modal"  class="modal policy-modal" aria-hidden="true" role="dialog" aria-labelledby="privacy-title">
