@@ -352,11 +352,11 @@
       <nav class="footer-links" aria-label="Footer links">
         <h3>Links</h3>
         <ul>
-          <li><a href="#how-it-works">How it works</a></li>
-          <li><a href="/privacy-policy.html">Privacy Policy</a></li>
-          <li><a href="/terms.html">Terms of Service</a></li>
-          <li><a href="#form-section">Start your free check</a></li>
-          <li><a href="#" id="change-cookie-settings">Cookie settings</a></li>
+          <li><a href="#process">How it works</a></li>
+          <li><a href="#privacy" data-open-modal="privacy">Privacy Policy</a></li>
+          <li><a href="#terms"   data-open-modal="terms">Terms of Service</a></li>
+          <li><a href="#register" id="scroll-to-form">Start your free check</a></li>
+          <li><a href="#cookie-policy-modal" data-open-modal="cookie">Cookie settings</a></li>
         </ul>
       </nav>
 
@@ -390,8 +390,8 @@
     <div class="footer-bottom">
       <p>© 2025 Visible Legal Marketing Ltd. All rights reserved.</p>
       <div class="foot-meta">
-        <a href="/privacy-policy.html">Privacy</a>
-        <a href="/terms.html">Terms</a>
+        <a href="#privacy-policy-modal" data-open-modal="privacy">Privacy Policy</a></a>
+        <a href="#terms"   data-open-modal="terms">Terms of Service</a>
         <a href="mailto:support@visiblelegal.co.uk">Contact</a>
       </div>
     </div>
@@ -401,40 +401,169 @@
 
   <!--Cookie Banner-->
   <div id="cookie-banner" class="cookie-banner">
-    <p>This website uses cookies to ensure you get the best experience. <a href="#" class="openPrivacy">Learn more</a>.</p>
+    <p>This website uses cookies to ensure you get the best experience. <a href="#cookie-policy-modal" data-open-modal="cookie">Learn more</a>.</p>
     <button id="acceptCookies">Got it</button>
   </div>
 
   <!-- Privacy Policy Modal -->
-  <div id="privacyModal" class="modal hidden">
-    <div class="modal-content">
-      <button class="close-modal" aria-label="Close Privacy Policy Modal">✕</button>
-      <h2>Privacy Policy</h2>
-      <p><strong>Who We Are</strong><br>
-      Visible Legal Marketing Ltd (Company No. 10263322) is a claims management company regulated by the Financial Conduct Authority (FRN 835293). Our registered office is 5 Eagle Fold, Hyde, SK14 4GU.</p>
+    <div id="privacy-policy-modal"  class="modal policy-modal" aria-hidden="true" role="dialog" aria-labelledby="privacy-title">
+      <div class="modal-content" style="max-width: 820px; width: 92%; max-height: 80vh; overflow: auto; text-align: left;">
+        <div class="modal-body">
+          <h2 id="privacy-title" style="margin-top:0;">Privacy Policy</h2>
 
-      <p><strong>What Information We Collect</strong><br>
-      When you complete our interest form, we collect your name, email, phone number, claim type, optional notes, and (if relevant) IVA reference number.</p>
+          <p><strong>Last updated:</strong> 15 August 2025</p>
 
-      <p><strong>How We Use Your Data</strong><br>
-      This information is used solely for the purpose of reviewing your enquiry and referring your case to one of our trusted panel solicitors, where appropriate.</p>
+          <h3>1. Who We Are</h3>
+          <p>Visible Legal Marketing Limited (“we”, “us”, “our”) is a claims management company regulated by the Financial Conduct Authority (FCA No. 835293).</p>
+          <ul>
+            <li>Company number: 10263322</li>
+            <li>Registered address: 5 Eagle Fold, Hyde, England, SK14 4GU</li>
+            <li>Contact: <a href="mailto:admin@vlmclaims.co.uk">admin@vlmclaims.co.uk</a></li>
+          </ul>
 
-      <p><strong>Who We Share It With</strong><br>
-      Your details may be shared with solicitors regulated by the Solicitors Regulation Authority for the purpose of investigating your claim. We do not share your data with marketing companies or third parties unrelated to your case.</p>
+          <h3>2. Purpose of This Policy</h3>
+          <p>This policy explains how we collect, use, store, and share your personal information when you use our IVA Claim Checker or contact us.</p>
 
-      <p><strong>How We Store It</strong><br>
-      Data is stored securely via our email provider and may be handled by trusted third-party services such as FormSubmit, which act as data processors.</p>
+          <h3>3. The Data We Collect</h3>
+          <p>We may collect:</p>
+          <ul>
+            <li>Contact details (name, email, phone)</li>
+            <li>IVA details (provider, reference number, status, debt level, monthly payment, IVA type)</li>
+            <li>Address &amp; residency information (current/previous address, residential status)</li>
+            <li>Employment &amp; income details (employment status, job title, salary)</li>
+            <li>Marketing source and consent preferences</li>
+            <li>Any additional details you provide in free‑text fields</li>
+          </ul>
 
-      <p><strong>Your Rights</strong><br>
-      You have the right to access, correct, or request deletion of your personal information. To do so, contact us at <a href="mailto:josh@jdhreports.co.uk">josh@jdhreports.co.uk</a>.</p>
+          <h3>4. How We Collect Your Data</h3>
+          <p>Directly from you (forms, email, phone). We may also receive updates from our SRA‑regulated solicitor partners in relation to your claim.</p>
 
-      <p><strong>Cookies</strong><br>
-      We use basic cookies for functionality and to improve user experience. No tracking or analytics cookies are currently active.</p>
+          <h3>5. How We Use Your Data</h3>
+          <ul>
+            <li>Assess your potential IVA mis‑selling claim</li>
+            <li>Connect you with an appropriate solicitor for review</li>
+            <li>Communicate with you about your claim</li>
+            <li>Comply with legal and regulatory obligations</li>
+          </ul>
 
-      <p><strong>Contact</strong><br>
-      For any data-related queries, email <a href="mailto:josh@jdhreports.co.uk">josh@jdhreports.co.uk</a>.</p>
+          <h3>6. Lawful Basis</h3>
+          <p>Primarily <strong>consent</strong> (UK GDPR Art. 6(1)(a)) for claim assessment and solicitor referral. You can withdraw consent at any time by contacting us.</p>
+
+          <h3>7. Sharing Your Data</h3>
+          <ul>
+            <li>Our panel of SRA‑regulated solicitors for claim assessment</li>
+            <li>Regulators or authorities (e.g., FCA, ICO) where required by law</li>
+          </ul>
+          <p>We do <strong>not</strong> sell your personal data.</p>
+
+          <h3>8. Retention</h3>
+          <p>We retain claim‑related data only as long as necessary for the purposes above and regulatory requirements — typically up to <strong>6 years</strong>.</p>
+
+          <h3>9. Your Rights</h3>
+          <p>You have rights to access, rectification, erasure, restriction/objection, and data portability. To exercise them, email <a href="mailto:admin@vlmclaims.co.uk">admin@vlmclaims.co.uk</a>. You may be asked to verify your identity.</p>
+
+          <h3>10. Data Security</h3>
+          <p>We use appropriate technical and organisational measures to protect your data against unauthorised access, loss, or misuse.</p>
+
+          <h3>11. International Transfers</h3>
+          <p>We do not routinely transfer data outside the UK. If a transfer is necessary, we will implement appropriate safeguards (e.g., IDTA/adequacy).</p>
+
+          <h3>12. Cookies</h3>
+          <p>We use essential cookies and may use analytics cookies. See our <a href="#" class="open-cookie-policy">Cookie Policy</a> for details.
+      </p>
+
+          <h3>13. Complaints</h3>
+          <p>If you’re unhappy with how we handle your data, contact us first. You can also complain to the Information Commissioner’s Office (ICO) at <a href="https://ico.org.uk" target="_blank" rel="noopener">ico.org.uk</a>.</p>
+
+          <button id="close-privacy" class="cta-btn" style="margin-top: 1rem;">Close</button>
+      </div>
+      </div>
+    </div>
+
+    <!-- Terms of Service Modal -->
+    <div id="terms-modal" class="modal policy-modal" aria-hidden="true" role="dialog" aria-labelledby="terms-title">
+      <div class="modal-content">
+        <div class="modal-body">
+        <h2 id="terms-title">Terms of Service</h2>
+        <p><strong>Last updated:</strong> 15 August 2025</p>
+
+        <h3>1. Who we are</h3>
+        <p>Visible Legal Marketing Limited (“VLM”, “we”, “us”, “our”) is a claims management company authorised and regulated by the Financial Conduct Authority (FCA No. 835293). Company number: 10263322. Registered address: 5 Eagle Fold, Hyde, England, SK14 4GU. Contact: <a href="mailto:admin@vlmclaims.co.uk">admin@vlmclaims.co.uk</a>.</p>
+        <p>You can verify our FCA permissions on the <a href="https://register.fca.org.uk" target="_blank" rel="noopener">Financial Services Register</a>. Where we introduce you to a solicitor, that firm is authorised and regulated by the <a href="https://www.sra.org.uk" target="_blank" rel="noopener">Solicitors Regulation Authority (SRA)</a> and will act independently.</p>
+
+        <h3>2. Our service and status</h3>
+        <p>We provide an initial assessment of potential IVA mis-selling and, with your consent, may introduce you to an appropriate SRA-regulated solicitor for legal advice. We do not provide legal advice; any legal advice is given solely by the appointed solicitor. You are free to choose another solicitor at any time.</p>
+
+        <h3>3. Your responsibilities</h3>
+        <ul>
+          <li>Provide accurate, complete and up-to-date information;</li>
+          <li>Tell us promptly if your details change;</li>
+          <li>Read, consider and keep copies of any information provided by us or by the solicitor.</li>
+        </ul>
+
+        <h3>4. Fees and remuneration</h3>
+        <p>We do not charge you for using this website or our initial assessment. If you proceed with a solicitor, that firm will confirm its fees and terms in its own client care letter/retainer. We may receive a referral fee from the solicitor for introductions; this does not affect the independence of their advice or your costs. Any such arrangements will be disclosed to you where required.</p>
+
+        <h3>5. Eligibility, outcomes and no guarantee</h3>
+        <p>Any eligibility result shown on this website is indicative only. Outcomes are not guaranteed and depend on your circumstances, evidence available and the solicitor’s assessment.</p>
+
+        <h3>6. Communications and consent</h3>
+        <p>By submitting our form, you consent to being contacted about your enquiry by email, telephone and SMS/WhatsApp. You can withdraw consent at any time. Personal data is handled in line with our <a href="/privacy-policy.html">Privacy Policy</a> and <a href="#" class="open-cookie-policy">Cookie Policy</a>.</p>
+
+        <h3>7. Complaints</h3>
+        <p>If you are unhappy with our service, please contact <a href="mailto:admin@vlmclaims.co.uk">admin@vlmclaims.co.uk</a>. We will acknowledge your complaint promptly and aim to provide our final response within 8 weeks. If you remain dissatisfied, or if we do not respond within 8 weeks, you can refer your complaint to the <a href="https://www.financial-ombudsman.org.uk/" target="_blank" rel="noopener">Financial Ombudsman Service</a> free of charge within 6 months of our final response: Financial Ombudsman Service, Exchange Tower, London E14 9SR. Telephone: 0800 023 4567 or 0300 123 9123.</p>
+        <p>If your complaint relates to legal services provided by a solicitor, please use that firm’s complaints procedure. You may have rights to escalate to the Legal Ombudsman; the solicitor will explain this in their documentation.</p>
+
+        <h3>8. Website use</h3>
+        <p>Site content is provided for general information only. We try to keep it accurate and up-to-date but make no warranties that it is complete or error-free. We own or license the intellectual property in this site; you must not copy or redistribute content without permission.</p>
+
+        <h3>9. Limitation of liability</h3>
+        <p>We do not exclude or limit liability where it would be unlawful to do so, including liability for fraud. To the fullest extent permitted by law, we exclude liability for indirect or consequential loss arising from your use of this site or reliance on non-advisory information provided through it.</p>
+
+        <h3>10. Changes to these terms</h3>
+        <p>We may update these terms from time to time. The latest version will be posted here with the “Last updated” date.</p>
+
+        <h3>11. Governing law</h3>
+        <p>These terms are governed by the laws of England and Wales. The courts of England and Wales have exclusive jurisdiction.</p>
+
+        <button id="close-terms" class="cta-btn">Close</button>
+      </div>
+      </div>
+    </div>
+
+    <!-- Cookie Policy Modal -->
+<div id="cookie-policy-modal" class="modal policy-modal" aria-hidden="true" role="dialog" aria-labelledby="cookie-title">
+  <div class="modal-content" style="max-width: 820px; width:92%; max-height:80vh; overflow:auto; text-align:left;">
+    <div class="modal-body">
+      <h2 id="cookie-title" style="margin-top:0;">Cookie Policy</h2>
+
+      <p><strong>What are cookies?</strong> Cookies are small files stored on your device. Some are essential; others (like analytics) help us improve the site.</p>
+
+      <h3>Types we use</h3>
+      <ul>
+        <li><strong>Strictly necessary</strong> (always on): required for security and basic functionality. No consent needed.</li>
+        <li><strong>Analytics</strong> (optional): help us understand usage so we can improve the site. Set only if you accept.</li>
+      </ul>
+
+      <h3>Specific cookies / storage</h3>
+      <ul>
+        <li>Google Analytics (GA4): measurement cookies (e.g. _ga variants). Set only after you click “Accept analytics”.</li>
+        <li>Local Storage: <code>vlm_cookie_consent</code> — remembers your choice (accepted/rejected) for up to 12 months.</li>
+      </ul>
+
+      <h3>Your choices</h3>
+      <p>You can accept or reject analytics via the banner, or change your choice any time here:</p>
+      <p><a href="#" id="change-cookie-settings" class="btn-link">Change cookie settings</a></p>
+
+      <h3>Contact</h3>
+      <p>Questions? Email <a href="mailto:admin@vlmclaims.co.uk">admin@vlmclaims.co.uk</a>.</p>
+
+      <button id="close-cookie-policy" class="cta-btn" style="margin-top:1rem;">Close</button>
     </div>
   </div>
+</div>
+
+
 
   <a href="#register" class="sticky-cta">Start Your Claim</a>
   <script src="script.js" defer></script>

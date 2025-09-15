@@ -95,27 +95,6 @@ acceptBtn.addEventListener("click", () => {
   cookieBanner.style.display = "none";
 });
 
-// Privacy Policy Modal
-const privacyModal = document.getElementById("privacyModal");
-const closePrivacyBtn = document.querySelector(".close-modal");
-
-document.querySelectorAll(".openPrivacy").forEach(btn => {
-  btn.addEventListener("click", (e) => {
-    e.preventDefault();
-    privacyModal.classList.remove("hidden");
-  });
-});
-
-closePrivacyBtn.addEventListener("click", () => {
-  privacyModal.classList.add("hidden");
-});
-
-window.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    privacyModal.classList.add("hidden");
-  }
-});
-
 //Sticky CTA Logic
 const stickyCta = document.querySelector(".sticky-cta");
 const heroSection = document.querySelector(".hero-section");
@@ -141,7 +120,94 @@ const revealObs = new IntersectionObserver((entries, obs) => {
 
 revealEls.forEach(el => revealObs.observe(el));
 
+/* ===========================================
+   Footer interactivity (How it works / Privacy / Cookies)
+   - Simple, defensive, and self-contained
+   =========================================== */
+
+/* ===========================================
+   Modal Manager — capture-phase + DRY mapping
+   =========================================== */
+(function () {
+  const $  = (s, c=document) => c.querySelector(s);
+  const $$ = (s, c=document) => Array.from(c.querySelectorAll(s));
+
+  // Map keys from data-open-modal="…" to modal selectors
+  const MODAL_MAP = {
+    privacy: '#privacy-policy-modal',
+    terms:   '#terms-modal',
+    cookie:  '#cookie-policy-modal' // ready for future use
+  };
+
+  function getModalEl(key) {
+    const sel = MODAL_MAP[key];
+    return sel ? $(sel) : null;
+  }
+
+  function bodyLock(lock) {
+    document.body.style.overflow = lock ? 'hidden' : '';
+  }
+
+  function closeAllModals() {
+    $$('.modal').forEach(m => {
+      m.classList.remove('show');
+      m.setAttribute('aria-hidden', 'true');
+    });
+    bodyLock(false);
+  }
+
+  function openModalByKey(key) {
+    const modal = getModalEl(key);
+    if (!modal) return;
+    closeAllModals();
+    modal.classList.add('show');
+    modal.setAttribute('aria-hidden', 'false');
+    bodyLock(true);
+    // focus first sensible control
+    (modal.querySelector('#close-privacy, #close-terms, button, [href], input, select, textarea') || modal)
+      ?.focus?.({ preventScroll: true });
+  }
+
+  // Close actions (outside click + Esc + specific close buttons)
+  document.addEventListener('click', (e) => {
+    const m = e.target.closest('.modal');
+    if (m && e.target === m) closeAllModals(); // click backdrop
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAllModals();
+  });
+  $('#close-privacy')?.addEventListener('click', closeAllModals);
+  $('#close-terms')?.addEventListener('click', closeAllModals);
+  $('#close-cookie-policy')?.addEventListener('click', closeAllModals);
 
 
+  // SAFETY: ensure closed on load
+  document.addEventListener('DOMContentLoaded', closeAllModals);
 
+  // ======= CAPTURE-PHASE DELEGATE =======
+  // This guarantees we see the click before any bubbling handler calls stopPropagation().
+  document.addEventListener('click', (e) => {
+    const trigger = e.target.closest('[data-open-modal]');
+    if (!trigger) return;
 
+    const key = (trigger.getAttribute('data-open-modal') || '').trim().toLowerCase();
+    if (!key) return;
+
+    // If we recognise the key, open modal and block navigation
+    if (MODAL_MAP[key]) {
+      e.preventDefault();
+      openModalByKey(key);
+    }
+  }, true); // <-- capture phase
+})();
+
+// Smooth scroll for "Start your free check" link
+const scrollLink = document.getElementById("scroll-to-form");
+const formSection = document.getElementById("register");
+
+if (scrollLink && formSection) {
+  scrollLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    formSection.scrollIntoView({ behavior: "smooth" });
+  });
+}
