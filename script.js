@@ -501,6 +501,45 @@ onScroll();
   });
 })();
 
+// ---- phone helpers
+function digitsOnly(v) { return (v || '').replace(/\D/g, ''); }
+function toE164UK(v) {
+  let d = digitsOnly(v);
+  if (!d) return '';
+  if (d.startsWith('44')) return '+'.concat(d);
+  if (d.startsWith('0')) return '+44'.concat(d.slice(1));
+  // last fallback: if user pasted '+44...' keep as is
+  if (v.trim().startsWith('+')) return v.trim();
+  return '+'.concat(d);
+}
+
+// build payload
+const rawPhone = document.getElementById('phone').value.trim();
+const phoneDigits = digitsOnly(rawPhone);
+const phoneE164 = toE164UK(rawPhone);
+
+const payload = {
+  fullName: document.getElementById('fullName').value.trim(),
+  email: document.getElementById('email').value.trim(),
+  phoneRaw: rawPhone,            // as typed (passes your pattern)
+  phoneDigits: phoneDigits,      // 07123456789 -> 07123456789 (no spaces)
+  phoneE164: phoneE164,          // -> +447123456789
+  claimType: document.getElementById('claimType').value,
+  ivaRef: document.getElementById('ivaRef')?.value.trim() || '',
+  notes: document.getElementById('message')?.value.trim() || '',
+  contactConsent: document.getElementById('contactConsent').checked,
+  marketingOptIn: document.getElementById('marketingOptIn').checked,
+  consentTimestamp: new Date().toISOString(),
+  utm_source: document.getElementById('utm_source').value,
+  utm_medium: document.getElementById('utm_medium').value,
+  utm_campaign: document.getElementById('utm_campaign').value,
+  utm_term: document.getElementById('utm_term').value,
+  utm_content: document.getElementById('utm_content').value,
+  source_url: document.getElementById('source_url').value,
+  userAgent: navigator.userAgent
+};
+
+
 
 
 

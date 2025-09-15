@@ -230,26 +230,35 @@
   <section class="interest-form-section" id="register">
     <div class="container">
       <h2 class="section-title">Register Your Interest in Making a Claim</h2>
-      <form action="https://formsubmit.co/josh@jdhreports.co.uk" method="POST" class="interest-form" id="claimForm">
-        
+      <form action="https://hook.eu2.make.com/chsvgeiej9tpwozpuna1t3kyqw4zyb9c" method="POST" class="interest-form" id="claimForm" novalidate>
         <div class="form-group">
           <label for="fullName">Full Name*</label>
-          <input type="text" id="fullName" name="Full Name" required />
+          <input type="text" id="fullName" name="fullName" autocomplete="name" placeholder="John Smith" required />
         </div>
 
         <div class="form-group">
           <label for="email">Email Address*</label>
-          <input type="email" id="email" name="Email" required />
+          <input type="email" id="email" name="email" autocomplete="email" placeholder="jsmith@example.com" required />
         </div>
 
         <div class="form-group">
           <label for="phone">Phone Number*</label>
-          <input type="tel" id="phone" name="Phone Number" required />
+          <input 
+            type="tel" 
+            id="phone" 
+            name="phone" 
+            inputmode="tel" 
+            autocomplete="tel" 
+            required 
+            pattern="^0[1-9]\d{8,9}$" 
+            placeholder="07123 456789" 
+            title="Enter a valid UK phone number e.g. 07123 456789"
+          />
         </div>
 
         <div class="form-group">
           <label for="claimType">Claim Type*</label>
-          <select id="claimType" name="Claim Type" required>
+          <select id="claimType" name="claimType" required>
             <option value="" disabled selected>Select an option</option>
             <option value="IVA">IVA</option>
             <option value="Car Finance">Car Finance</option>
@@ -259,26 +268,47 @@
 
         <div class="form-group hidden" id="ivaRefGroup">
           <label for="ivaRef">IVA Reference Number <span style="font-weight:normal">(optional)</span></label>
-          <input type="text" id="ivaRef" name="IVA Reference Number" />
+          <input type="text" id="ivaRef" name="ivaRef" />
           <p class="helper-text">
             You can usually find this on the original welcome letter, provider emails, or your credit file. If you don't have it to hand, just leave this blank.
           </p>
         </div>
 
-
         <div class="form-group">
           <label for="message">Optional Notes</label>
-          <textarea id="message" name="Message" rows="4" placeholder="Anything else you'd like us to know?"></textarea>
+          <textarea id="message" name="notes" rows="4" placeholder="Anything else you'd like us to know?"></textarea>
         </div>
 
-        <button type="submit" class="cta-button">Submit</button>
+        <!-- Consent (required to re-contact for this enquiry) -->
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="contactConsent" name="contactConsent" required>
+            *I agree that Visible Legal Marketing may contact me by email, SMS or WhatsApp about this enquiry. 
+            See <a href="#privacy" data-open-modal="privacy">Privacy Policy</a> and <a href="#terms" data-open-modal="terms">Terms</a>.
+          </label>
+        </div>
+
+        <!-- Optional marketing updates -->
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="marketingOptIn" name="marketingOptIn">
+            Send me updates about related claim types in future (optional).
+          </label>
+        </div>
+
+        <!-- Hidden meta for Make/Airtable -->
+        <input type="hidden" id="utm_source" name="utm_source">
+        <input type="hidden" id="utm_medium" name="utm_medium">
+        <input type="hidden" id="utm_campaign" name="utm_campaign">
+        <input type="hidden" id="utm_term" name="utm_term">
+        <input type="hidden" id="utm_content" name="utm_content">
+        <input type="hidden" id="source_url" name="source_url">
+
+        <button type="submit" class="cta-button" id="submitBtn">Submit</button>
 
         <p class="thank-you-message hidden" id="thankYouMessage">Thanks – your interest has been registered! We'll be in touch shortly.</p>
-
-        <!-- Prevent redirect on FormSubmit -->
-        <input type="hidden" name="_redirect" value="false">
-        <input type="hidden" name="_captcha" value="false">
       </form>
+
     </div>
   </section>
 
