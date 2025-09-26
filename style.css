@@ -1201,6 +1201,14 @@ backdrop-filter: saturate(120%) blur(12px);
   font-size: .85rem;
 }
 
+.error-message {
+  text-align: center;
+  font-size: 0.95rem;
+  color: #DC2626;
+  margin-top: 0.75rem;
+}
+
+
 #register { scroll-margin-top: 80px; } 
 
 /* Reduced motion */

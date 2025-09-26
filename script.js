@@ -1,3 +1,18 @@
+// --- UTM + source_url population ---
+document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+
+  set('utm_source',  params.get('utm_source'));
+  set('utm_medium',  params.get('utm_medium'));
+  set('utm_campaign',params.get('utm_campaign'));
+  set('utm_term',    params.get('utm_term'));
+  set('utm_content', params.get('utm_content'));
+  set('source_url',  window.location.href);
+});
+
+
+
 //HEADER LOGIC
 
 const ctaButton = document.querySelector('.cta-button');
@@ -52,21 +67,84 @@ claimTypeSelect.addEventListener("change", toggleIVAField);
 
 
 // Inline thank you message (FormSubmit trick)
+// --- Submit with enriched JSON payload + UX states ---
 const form = document.getElementById("claimForm");
-form.addEventListener("submit", function (e) {
+const submitBtn = document.getElementById("submitBtn");
+const thankYou = document.getElementById("thankYouMessage");
+
+let errorMsg = document.getElementById("errorMessage");
+if (!errorMsg) {
+  errorMsg = document.createElement('p');
+  errorMsg.id = 'errorMessage';
+  errorMsg.className = 'error-message hidden';
+  submitBtn.insertAdjacentElement('afterend', errorMsg);
+}
+
+function digitsOnly(v){ return (v||'').replace(/\D/g,''); }
+function toE164UK(v){
+  const raw = (v||'').trim();
+  let d = digitsOnly(raw);
+  if (!d) return '';
+  if (raw.startsWith('+')) return raw;
+  if (d.startsWith('44')) return `+${d}`;
+  if (d.startsWith('0'))  return `+44${d.slice(1)}`;
+  return `+${d}`;
+}
+
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  
-  fetch(form.action, {
-    method: "POST",
-    body: new FormData(form),
-    headers: { Accept: "application/json" }
-  }).then(response => {
-    if (response.ok) {
-      form.reset();
-      document.getElementById("thankYouMessage").classList.remove("hidden");
-    }
-  });
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting…';
+  thankYou?.classList.add('hidden');
+  errorMsg?.classList.add('hidden');
+  errorMsg.textContent = '';
+
+  const fullName = document.getElementById('fullName').value.trim();
+  const email    = document.getElementById('email').value.trim();
+  const phoneRaw = document.getElementById('phone').value.trim();
+  const claim    = document.getElementById('claimType').value;
+  const ivaRef   = document.getElementById('ivaRef')?.value.trim() || '';
+  const notes    = document.getElementById('message')?.value.trim() || '';
+
+  const payload = {
+    fullName, email, phoneRaw,
+    phoneDigits: digitsOnly(phoneRaw),
+    phoneE164: toE164UK(phoneRaw),
+    claimType: claim, ivaRef, notes,
+    contactConsent: document.getElementById('contactConsent').checked,
+    marketingOptIn: document.getElementById('marketingOptIn').checked,
+    consentTimestamp: new Date().toISOString(),
+    utm_source:  document.getElementById('utm_source').value,
+    utm_medium:  document.getElementById('utm_medium').value,
+    utm_campaign:document.getElementById('utm_campaign').value,
+    utm_term:    document.getElementById('utm_term').value,
+    utm_content: document.getElementById('utm_content').value,
+    source_url:  document.getElementById('source_url').value,
+    userAgent: navigator.userAgent
+  };
+
+  try {
+    const res = await fetch(form.action, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    form.reset();
+    thankYou?.classList.remove('hidden');
+    thankYou?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch (err) {
+    errorMsg.textContent = "Sorry, we couldn’t submit your details. Please try again in a minute or email support@visiblelegal.co.uk.";
+    errorMsg.classList.remove('hidden');
+    console.error('Submit error:', err);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit';
+  }
 });
+
+
 
 //ABOUT US SCROLL
 
@@ -242,17 +320,16 @@ onScroll();
 
 
 /* =========================
-   Cookie Consent + Analytics
+   Cookie Consent + Analytics (Consent Mode in <head>)
    ========================= */
 (function () {
   const BANNER_ID = 'cookie-banner';
   const STORAGE_KEY = 'vlm_cookie_consent';
-  const POLICY_VERSION = '2025-08-15'; // bump when policy changes
-  const GA_MEASUREMENT_ID = 'G-XXXXXXXXXX'; // <-- replace with your GA4 ID
+  const POLICY_VERSION = '2025-08-15'; // keep this in sync with your policy dates
 
   const $ = (s, c=document) => c.querySelector(s);
 
-  const bannerEl = $('#' + BANNER_ID);
+  const bannerEl  = $('#' + BANNER_ID);
   const btnAccept = $('#acceptAnalytics');
   const btnReject = $('#rejectAnalytics');
 
@@ -260,82 +337,71 @@ onScroll();
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); }
     catch { return null; }
   }
-
   function setConsent(accepted) {
-    const payload = {
-      analytics: !!accepted,
-      version: POLICY_VERSION,
-      ts: new Date().toISOString()
-    };
+    const payload = { analytics: !!accepted, version: POLICY_VERSION, ts: new Date().toISOString() };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     return payload;
   }
-
   function showBanner(show) {
     if (!bannerEl) return;
     bannerEl.style.display = show ? 'flex' : 'none';
   }
 
-  // GA4 loader – only runs if consent.analytics === true
-  function loadAnalytics() {
-    if (!GA_MEASUREMENT_ID || window.__gaLoaded) return;
-    window.__gaLoaded = true;
-
-    // (Optional) Consent Mode v2 defaults (blocked until granted)
+  // Safety: wrapper around gtag so we don't crash if GA hasn't loaded yet
+  function safeGtag() {
+    if (typeof window.gtag === 'function') return window.gtag;
+    // Create a no-op that still queues into dataLayer
     window.dataLayer = window.dataLayer || [];
-    function gtag(){ dataLayer.push(arguments); }
-    gtag('consent', 'default', {
-      'ad_user_data': 'denied',
-      'ad_personalization': 'denied',
-      'ad_storage': 'denied',
-      'analytics_storage': 'denied',
-      'functionality_storage': 'granted',
-      'security_storage': 'granted'
-    });
-
-    // Inject GA4
-    const s1 = document.createElement('script');
-    s1.async = true;
-    s1.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
-    document.head.appendChild(s1);
-
-    const s2 = document.createElement('script');
-    s2.text = `
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){ dataLayer.push(arguments); }
-      gtag('js', new Date());
-      gtag('consent', 'update', { 'analytics_storage': 'granted' });
-      gtag('config', '${GA_MEASUREMENT_ID}');
-    `;
-    document.head.appendChild(s2);
+    window.gtag = function(){ window.dataLayer.push(arguments); };
+    return window.gtag;
   }
 
+  // Apply saved choice at startup
   function applyConsent(consent) {
-    // Respect existing choice
+    const gtag = safeGtag();
     if (consent?.analytics) {
-      loadAnalytics();
+      // User already accepted earlier
+      console.log('[cookies] prior acceptance found → grant analytics & config');
+      gtag('consent', 'update', { analytics_storage: 'granted' });
+      // Fire config now (queue-safe if library still loading)
+      const id = window.GA_MEASUREMENT_ID || 'G-P36T39LW3D';
+      gtag('config', id, { debug_mode: true }); // debug_mode helps you see hits in DebugView
+      showBanner(false);
+    } else {
+      // No choice yet → show banner
+      showBanner(true);
     }
-    showBanner(!consent); // show banner only if no prior choice
   }
 
   // Wire buttons
   btnAccept?.addEventListener('click', () => {
     const c = setConsent(true);
-    loadAnalytics();
-    showBanner(false);
-  });
-  btnReject?.addEventListener('click', () => {
-    setConsent(false);
+    console.log('[cookies] accepted analytics at', c.ts);
+    const gtag = safeGtag();
+    gtag('consent', 'update', { analytics_storage: 'granted' });
+
+    // Send config now that consent is granted
+    const id = window.GA_MEASUREMENT_ID || 'G-P36T39LW3D';
+    gtag('config', id, { debug_mode: true });
+
     showBanner(false);
   });
 
-  // “Change cookie settings” (in cookie modal) -> clear and show banner
+  btnReject?.addEventListener('click', () => {
+    const c = setConsent(false);
+    console.log('[cookies] rejected analytics at', c.ts);
+    const gtag = safeGtag();
+    // Optional: explicitly update to denied again
+    gtag('consent', 'update', { analytics_storage: 'denied' });
+    showBanner(false);
+  });
+
+  // “Change cookie settings” link in the cookie modal → clear and show banner
   document.addEventListener('click', (e) => {
     const a = e.target.closest('#change-cookie-settings');
     if (!a) return;
     e.preventDefault();
     localStorage.removeItem(STORAGE_KEY);
-    // Close any open modal (re-use your modal closer if present)
     const openModals = document.querySelectorAll('.modal.show');
     openModals.forEach(m => m.classList.remove('show'));
     document.body.style.overflow = '';
@@ -347,6 +413,7 @@ onScroll();
     applyConsent(getConsent());
   });
 })();
+
 
 // --- Coming Soon modal: UX + accessibility helpers ---
 (function () {
