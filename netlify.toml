@@ -1,0 +1,16 @@
+# Netlify Build Configuration
+# 
+# SECURITY: This configuration ensures sensitive files are not published:
+# - Reports folder (.reports/) is not copied to publish directory
+# - Lighthouse reports are written to /tmp/lh/ during CI builds
+# - Only safe environment variables are exposed to client
+
+[build]
+  command = "bash ./scripts/generate-env.sh"
+  publish = "."
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[functions]
+  node_bundler = "esbuild"

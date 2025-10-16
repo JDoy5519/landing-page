@@ -1,3 +1,90 @@
+// --- Modal Management (Enhanced) ---
+function shouldOpenModal(e) {
+  if (e.defaultPrevented) return false;
+  if (e.button !== 0) return false; // left click only
+  if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return false; // modified clicks go to real page
+  return true;
+}
+
+async function loadPartialInto(selector, url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const html = await response.text();
+    const el = document.querySelector(selector);
+    if (el) {
+      el.innerHTML = html;
+      return true;
+    }
+  } catch (err) {
+    console.warn('Partial load failed:', url, err);
+    return false;
+  }
+  return false;
+}
+
+function showModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  
+  modal.setAttribute('aria-hidden', 'false');
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+  
+  // Focus management
+  const firstFocusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+  if (firstFocusable) {
+    firstFocusable.focus();
+  }
+}
+
+function hideModal(id) {
+  const modal = document.getElementById(id);
+  if (!modal) return;
+  
+  modal.setAttribute('aria-hidden', 'true');
+  modal.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function hideAllModals() {
+  const modals = ['privacy-policy-modal', 'terms-modal', 'cookie-policy-modal'];
+  modals.forEach(hideModal);
+}
+
+// --- Enhanced Modal Content Loading ---
+async function loadModalContent(modalId, partialUrl) {
+  const modalBodySelector = `#${modalId} .modal-body`;
+  return await loadPartialInto(modalBodySelector, partialUrl);
+}
+
+// --- Cookie banner "Manage" support ---
+document.addEventListener('vlm:cookie:manage', () => {
+  const banner = document.getElementById('cookie-banner');
+  if (banner) {
+    banner.classList.remove('hidden');
+    banner.style.display = 'flex';
+  }
+});
+
+// Handle "Change cookie settings" link in modals
+document.addEventListener('click', (e) => {
+  const target = e.target.closest('#change-cookie-settings');
+  if (!target) return;
+  
+  e.preventDefault();
+  hideAllModals();
+  document.dispatchEvent(new CustomEvent('vlm:cookie:manage'));
+});
+
+// --- Site Configuration ---
+const SITE_CONFIG = {
+  routes: {
+    iva: './iva/',
+    contact_email: 'support@visiblelegal.co.uk'
+  }
+};
+
 // --- UTM + source_url population ---
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
@@ -9,7 +96,21 @@ document.addEventListener('DOMContentLoaded', () => {
   set('utm_term',    params.get('utm_term'));
   set('utm_content', params.get('utm_content'));
   set('source_url',  window.location.href);
+
+  // Update IVA links to use internal path
+  updateIVALinks();
 });
+
+// --- Update IVA Links ---
+function updateIVALinks() {
+  const ivaLinks = document.querySelectorAll('a[href*="iva-checker.netlify.app"], a[href*="netlify"]');
+  ivaLinks.forEach(link => {
+    if (link.href.includes('iva')) {
+      link.href = SITE_CONFIG.routes.iva;
+      console.log('[config] Updated IVA link to internal path');
+    }
+  });
+}
 
 
 
@@ -52,6 +153,11 @@ const claimTypeSelect = document.getElementById("claimType");
 const ivaRefGroup = document.getElementById("ivaRefGroup");
 
 function toggleIVAField() {
+  // Check if elements exist before trying to use them
+  if (!claimTypeSelect || !ivaRefGroup) {
+    return;
+  }
+  
   if (claimTypeSelect.value === "IVA") {
     ivaRefGroup.classList.remove("hidden");
   } else {
@@ -59,11 +165,12 @@ function toggleIVAField() {
   }
 }
 
-// Run once on page load
-toggleIVAField();
-
-// Run every time claim type changes
-claimTypeSelect.addEventListener("change", toggleIVAField);
+// Run once on page load (only if elements exist)
+if (claimTypeSelect && ivaRefGroup) {
+  toggleIVAField();
+  // Run every time claim type changes
+  claimTypeSelect.addEventListener("change", toggleIVAField);
+}
 
 
 // Inline thank you message (FormSubmit trick)
@@ -73,7 +180,7 @@ const submitBtn = document.getElementById("submitBtn");
 const thankYou = document.getElementById("thankYouMessage");
 
 let errorMsg = document.getElementById("errorMessage");
-if (!errorMsg) {
+if (!errorMsg && submitBtn) {
   errorMsg = document.createElement('p');
   errorMsg.id = 'errorMessage';
   errorMsg.className = 'error-message hidden';
@@ -91,11 +198,23 @@ function toE164UK(v){
   return `+${d}`;
 }
 
-form.addEventListener("submit", async (e) => {
+if (form) {
+  form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  // Prevent double submission
+  if (submitBtn.disabled) return;
+  
+  // Check honeypot
+  const honeypot = form.querySelector('input[name="_honey"]');
+  if (honeypot && honeypot.value) {
+    console.log('Bot detected via honeypot');
+    return;
+  }
+  
   submitBtn.disabled = true;
   submitBtn.textContent = 'Submitting…';
+  submitBtn.setAttribute('aria-busy', 'true');
   thankYou?.classList.add('hidden');
   errorMsg?.classList.add('hidden');
   errorMsg.textContent = '';
@@ -135,14 +254,16 @@ form.addEventListener("submit", async (e) => {
     thankYou?.classList.remove('hidden');
     thankYou?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   } catch (err) {
-    errorMsg.textContent = "Sorry, we couldn’t submit your details. Please try again in a minute or email support@visiblelegal.co.uk.";
+    errorMsg.textContent = `Sorry, we couldn't submit your details. Please try again in a minute or email ${SITE_CONFIG.routes.contact_email}.`;
     errorMsg.classList.remove('hidden');
     console.error('Submit error:', err);
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = 'Submit';
+    submitBtn.removeAttribute('aria-busy');
   }
 });
+}
 
 
 
@@ -191,68 +312,74 @@ revealEls.forEach(el => revealObs.observe(el));
    =========================================== */
 
 /* ===========================================
-   Modal Manager — capture-phase + DRY mapping
+   Enhanced Modal Manager with Policy Support
    =========================================== */
 (function () {
-  const $  = (s, c=document) => c.querySelector(s);
+  const $ = (s, c=document) => c.querySelector(s);
   const $$ = (s, c=document) => Array.from(c.querySelectorAll(s));
 
-  // Map keys from data-open-modal="…" to modal selectors
+  // Map keys from data-open-modal="…" to modal selectors and partial URLs
   const MODAL_MAP = {
-    privacy: '#privacy-policy-modal',
-    terms:   '#terms-modal',
-    cookie:  '#cookie-policy-modal', // ready for future use
-    comingsoon: '#coming-soon-modal' // <-- add this
+    privacy: { 
+      selector: '#privacy-policy-modal', 
+      partial: '/partials/privacy-policy.html' 
+    },
+    terms: { 
+      selector: '#terms-modal', 
+      partial: '/partials/terms.html' 
+    },
+    cookie: { 
+      selector: '#cookie-policy-modal', 
+      partial: '/partials/cookies.html' 
+    },
+    comingsoon: { 
+      selector: '#coming-soon-modal', 
+      partial: null 
+    }
   };
 
   function getModalEl(key) {
-    const sel = MODAL_MAP[key];
-    return sel ? $(sel) : null;
+    const config = MODAL_MAP[key];
+    return config ? $(config.selector) : null;
   }
 
-  function bodyLock(lock) {
-    document.body.style.overflow = lock ? 'hidden' : '';
-  }
+  async function openModalByKey(key) {
+    const config = MODAL_MAP[key];
+    if (!config) return;
 
-  function closeAllModals() {
-    $$('.modal').forEach(m => {
-      m.classList.remove('show');
-      m.setAttribute('aria-hidden', 'true');
-    });
-    bodyLock(false);
-  }
-
-  function openModalByKey(key) {
-    const modal = getModalEl(key);
+    const modal = $(config.selector);
     if (!modal) return;
-    closeAllModals();
-    modal.classList.add('show');
-    modal.setAttribute('aria-hidden', 'false');
-    bodyLock(true);
-    // focus first sensible control
-    (modal.querySelector('#close-privacy, #close-terms, button, [href], input, select, textarea') || modal)
-      ?.focus?.({ preventScroll: true });
+
+    // Load content for policy modals
+    if (config.partial) {
+      const loaded = await loadModalContent(modal.id, config.partial);
+      if (!loaded) return;
+    }
+
+    hideAllModals();
+    showModal(modal.id);
   }
 
   // Close actions (outside click + Esc + specific close buttons)
   document.addEventListener('click', (e) => {
-    const m = e.target.closest('.modal');
-    if (m && e.target === m) closeAllModals(); // click backdrop
+    const modal = e.target.closest('.modal');
+    if (modal && e.target === modal) hideAllModals(); // click backdrop
   });
+  
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeAllModals();
+    if (e.key === 'Escape') hideAllModals();
   });
-  $('#close-privacy')?.addEventListener('click', closeAllModals);
-  $('#close-terms')?.addEventListener('click', closeAllModals);
-  $('#close-cookie-policy')?.addEventListener('click', closeAllModals);
 
+  // Close button handlers
+  $('#close-privacy')?.addEventListener('click', () => hideModal('privacy-policy-modal'));
+  $('#close-terms')?.addEventListener('click', () => hideModal('terms-modal'));
+  $('#close-cookie-policy')?.addEventListener('click', () => hideModal('cookie-policy-modal'));
 
   // SAFETY: ensure closed on load
-  document.addEventListener('DOMContentLoaded', closeAllModals);
+  document.addEventListener('DOMContentLoaded', hideAllModals);
 
   // ======= CAPTURE-PHASE DELEGATE =======
-  // This guarantees we see the click before any bubbling handler calls stopPropagation().
-  document.addEventListener('click', (e) => {
+  document.addEventListener('click', async (e) => {
     const trigger = e.target.closest('[data-open-modal]');
     if (!trigger) return;
 
@@ -262,9 +389,25 @@ revealEls.forEach(el => revealObs.observe(el));
     // If we recognise the key, open modal and block navigation
     if (MODAL_MAP[key]) {
       e.preventDefault();
-      openModalByKey(key);
+      await openModalByKey(key);
     }
   }, true); // <-- capture phase
+
+  // ======= POLICY LINK HANDLERS =======
+  // Handle policy links with IDs (privacy, terms, cookie policy)
+  document.addEventListener('click', async (e) => {
+    if (!shouldOpenModal(e)) return;
+
+    let modalKey = null;
+    if (e.target.closest('#open-privacy')) modalKey = 'privacy';
+    else if (e.target.closest('#open-terms')) modalKey = 'terms';
+    else if (e.target.closest('#open-cookie-policy')) modalKey = 'cookie';
+
+    if (modalKey) {
+      e.preventDefault();
+      await openModalByKey(modalKey);
+    }
+  });
 })();
 
 
@@ -320,31 +463,121 @@ onScroll();
 
 
 /* =========================
-   Cookie Consent + Analytics (Consent Mode in <head>)
+   Cookie Consent + Analytics (Robust State Machine)
    ========================= */
 (function () {
+  // Prevent duplicate initialization
+  if (window.__cookieInitDone) return;
+  window.__cookieInitDone = true;
+
   const BANNER_ID = 'cookie-banner';
-  const STORAGE_KEY = 'vlm_cookie_consent';
-  const POLICY_VERSION = '2025-08-15'; // keep this in sync with your policy dates
+  const STORAGE_KEY = 'vlm_consent'; // Simplified key
+  const POLICY_VERSION = '2025-08-15';
 
   const $ = (s, c=document) => c.querySelector(s);
+  let cookieAC; // AbortController for event cleanup
 
-  const bannerEl  = $('#' + BANNER_ID);
-  const btnAccept = $('#acceptAnalytics');
-  const btnReject = $('#rejectAnalytics');
+  // Ensure only one banner exists
+  const existingBanners = document.querySelectorAll('#' + BANNER_ID);
+  if (existingBanners.length > 1) {
+    for (let i = 1; i < existingBanners.length; i++) {
+      existingBanners[i].remove();
+    }
+  }
 
-  function getConsent() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); }
-    catch { return null; }
+  // Path detection for cookie page
+  const isCookiePage = /^\/cookies(\/index\.html)?\/?$/i.test(location.pathname) || 
+                       location.pathname.includes('/cookies/');
+
+  console.log('[cookies] Is cookie page:', isCookiePage, 'Path:', location.pathname);
+
+  // Simple state machine: "unset" | "accepted" | "rejected"
+  function getConsentState() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored || 'unset';
   }
-  function setConsent(accepted) {
-    const payload = { analytics: !!accepted, version: POLICY_VERSION, ts: new Date().toISOString() };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-    return payload;
+  
+  function setConsentState(state) {
+    if (!['accepted', 'rejected', 'unset'].includes(state)) {
+      console.error('[cookies] Invalid state:', state);
+      return;
+    }
+    localStorage.setItem(STORAGE_KEY, state);
+    console.log('[cookies] Consent state set to:', state);
   }
-  function showBanner(show) {
-    if (!bannerEl) return;
+  function bindCookieEvents() {
+    // Clean up previous listeners
+    if (cookieAC) cookieAC.abort();
+    cookieAC = new AbortController();
+    const { signal } = cookieAC;
+
+    const bannerEl = $('#' + BANNER_ID);
+    const btnAccept = $('#acceptAnalytics');
+    const btnReject = $('#rejectAnalytics');
+
+    if (!bannerEl) {
+      console.warn('[cookies] Banner element not found for binding');
+      return;
+    }
+
+    console.log('[cookies] Binding events to banner buttons');
+
+    if (btnAccept) {
+      btnAccept.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('[cookies] Accept button clicked');
+        
+        setConsentState('accepted');
+        const gtag = safeGtag();
+        gtag('consent', 'update', { analytics_storage: 'granted' });
+        
+        const id = window.GA_MEASUREMENT_ID || 'G-P36T39LW3D';
+        gtag('config', id, { debug_mode: true });
+        
+        hideBanner();
+      }, { signal });
+    } else {
+      console.warn('[cookies] Accept button not found');
+    }
+
+    if (btnReject) {
+      btnReject.addEventListener('click', (e) => {
+        e.preventDefault();
+        console.log('[cookies] Reject button clicked');
+        
+        setConsentState('rejected');
+        const gtag = safeGtag();
+        gtag('consent', 'update', { analytics_storage: 'denied' });
+        
+        hideBanner();
+      }, { signal });
+    } else {
+      console.warn('[cookies] Reject button not found');
+    }
+  }
+
+  function showBanner(show = true) {
+    const bannerEl = $('#' + BANNER_ID);
+    if (!bannerEl) {
+      console.warn('[cookies] Banner element not found');
+      return;
+    }
     bannerEl.style.display = show ? 'flex' : 'none';
+    console.log('[cookies] Banner', show ? 'shown' : 'hidden');
+    
+    if (show) {
+      // Rebind events when showing
+      bindCookieEvents();
+      // Focus first button when shown
+      const btnAccept = $('#acceptAnalytics');
+      if (btnAccept) {
+        setTimeout(() => btnAccept.focus({ preventScroll: true }), 100);
+      }
+    }
+  }
+
+  function hideBanner() {
+    showBanner(false);
   }
 
   // Safety: wrapper around gtag so we don't crash if GA hasn't loaded yet
@@ -356,61 +589,61 @@ onScroll();
     return window.gtag;
   }
 
-  // Apply saved choice at startup
-  function applyConsent(consent) {
+  // Apply consent based on state machine
+  function applyConsent() {
+    const state = getConsentState();
     const gtag = safeGtag();
-    if (consent?.analytics) {
-      // User already accepted earlier
-      console.log('[cookies] prior acceptance found → grant analytics & config');
+    
+    console.log('[cookies] Current consent state:', state, 'Cookie page:', isCookiePage);
+    
+    if (state === 'accepted') {
+      console.log('[cookies] Prior acceptance found → grant analytics & config');
       gtag('consent', 'update', { analytics_storage: 'granted' });
-      // Fire config now (queue-safe if library still loading)
       const id = window.GA_MEASUREMENT_ID || 'G-P36T39LW3D';
-      gtag('config', id, { debug_mode: true }); // debug_mode helps you see hits in DebugView
-      showBanner(false);
+      gtag('config', id, { debug_mode: true });
+      hideBanner();
+    } else if (state === 'rejected') {
+      console.log('[cookies] Prior rejection found → keep analytics denied');
+      gtag('consent', 'update', { analytics_storage: 'denied' });
+      hideBanner();
     } else {
-      // No choice yet → show banner
-      showBanner(true);
+      // state === 'unset' → show banner (but not on cookie page by default)
+      if (isCookiePage) {
+        console.log('[cookies] Cookie page - banner hidden by default, use Manage Settings to show');
+        hideBanner();
+      } else {
+        console.log('[cookies] No prior choice → show banner');
+        showBanner(true);
+      }
     }
   }
 
-  // Wire buttons
-  btnAccept?.addEventListener('click', () => {
-    const c = setConsent(true);
-    console.log('[cookies] accepted analytics at', c.ts);
-    const gtag = safeGtag();
-    gtag('consent', 'update', { analytics_storage: 'granted' });
+  // Initial event binding (will be rebound via showBanner when needed)
+  bindCookieEvents();
 
-    // Send config now that consent is granted
-    const id = window.GA_MEASUREMENT_ID || 'G-P36T39LW3D';
-    gtag('config', id, { debug_mode: true });
-
-    showBanner(false);
-  });
-
-  btnReject?.addEventListener('click', () => {
-    const c = setConsent(false);
-    console.log('[cookies] rejected analytics at', c.ts);
-    const gtag = safeGtag();
-    // Optional: explicitly update to denied again
-    gtag('consent', 'update', { analytics_storage: 'denied' });
-    showBanner(false);
-  });
-
-  // “Change cookie settings” link in the cookie modal → clear and show banner
+  // "Manage Cookie Settings" handler
   document.addEventListener('click', (e) => {
-    const a = e.target.closest('#change-cookie-settings');
-    if (!a) return;
+    const target = e.target.closest('#manage-cookie-settings, #change-cookie-settings');
+    if (!target) return;
+    
     e.preventDefault();
-    localStorage.removeItem(STORAGE_KEY);
+    console.log('[cookies] Manage settings clicked - showing banner');
+    
+    // Close any open modals
     const openModals = document.querySelectorAll('.modal.show');
-    openModals.forEach(m => m.classList.remove('show'));
+    openModals.forEach(m => {
+      m.classList.remove('show');
+      m.setAttribute('aria-hidden', 'true');
+    });
     document.body.style.overflow = '';
+    
+    // Show banner regardless of current state
     showBanner(true);
   });
 
   // Init on load
   document.addEventListener('DOMContentLoaded', () => {
-    applyConsent(getConsent());
+    applyConsent();
   });
 })();
 
@@ -580,34 +813,4 @@ function toE164UK(v) {
   return '+'.concat(d);
 }
 
-// build payload
-const rawPhone = document.getElementById('phone').value.trim();
-const phoneDigits = digitsOnly(rawPhone);
-const phoneE164 = toE164UK(rawPhone);
-
-const payload = {
-  fullName: document.getElementById('fullName').value.trim(),
-  email: document.getElementById('email').value.trim(),
-  phoneRaw: rawPhone,            // as typed (passes your pattern)
-  phoneDigits: phoneDigits,      // 07123456789 -> 07123456789 (no spaces)
-  phoneE164: phoneE164,          // -> +447123456789
-  claimType: document.getElementById('claimType').value,
-  ivaRef: document.getElementById('ivaRef')?.value.trim() || '',
-  notes: document.getElementById('message')?.value.trim() || '',
-  contactConsent: document.getElementById('contactConsent').checked,
-  marketingOptIn: document.getElementById('marketingOptIn').checked,
-  consentTimestamp: new Date().toISOString(),
-  utm_source: document.getElementById('utm_source').value,
-  utm_medium: document.getElementById('utm_medium').value,
-  utm_campaign: document.getElementById('utm_campaign').value,
-  utm_term: document.getElementById('utm_term').value,
-  utm_content: document.getElementById('utm_content').value,
-  source_url: document.getElementById('source_url').value,
-  userAgent: navigator.userAgent
-};
-
-
-
-
-
-
+// Note: Phone helper functions and payload building are handled in the form submission section above

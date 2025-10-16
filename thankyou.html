@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thank You - Visible Legal Marketing</title>
+  <link rel="stylesheet" href="../style.css">
+  <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+  
+  <!-- Facebook Pixel + CAPI tracking -->
+  <script src="../assets/js/env.js"></script>
+  <script src="../assets/js/pixel.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="header-top">
+        <img src="../assets/vlm-logo.png" alt="Visible Legal Marketing - FCA Regulated Claims Management" class="logo" width="200" height="120" />
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="max-width: 600px; margin: 4rem auto; text-align: center;">
+    <div class="thank-you-content">
+      <div class="success-icon" style="font-size: 4rem; color: #10B981; margin-bottom: 1rem;">✓</div>
+      <h1>Thank You!</h1>
+      <p class="lead">Your IVA claim has been submitted successfully.</p>
+      
+      <div class="next-steps" style="text-align: left; margin: 2rem 0;">
+        <h2>What happens next?</h2>
+        <ul style="list-style: none; padding: 0;">
+          <li style="margin: 1rem 0; padding-left: 2rem; position: relative;">
+            <span style="position: absolute; left: 0; color: #10B981;">✓</span>
+            <strong>Letter of Authority (LOA):</strong> We've emailed you a secure e-signature link. Please sign it so we can request information from your lender.
+          </li>
+          <li style="margin: 1rem 0; padding-left: 2rem; position: relative;">
+            <span style="position: absolute; left: 0; color: #10B981;">✓</span>
+            <strong>Initial review (1–2 business days):</strong> Once we have your LOA, we'll review your case and confirm the next steps.
+          </li>
+          <li style="margin: 1rem 0; padding-left: 2rem; position: relative;">
+            <span style="position: absolute; left: 0; color: #6B7280;">✉</span>
+            <strong>Updates:</strong> We'll keep you informed by email and SMS/WhatsApp.
+          </li>
+        </ul>
+      </div>
+
+      <p style="color: #6B7280; margin-top: 2rem;">
+        Questions? Contact us at <a href="mailto:support@visiblelegal.co.uk">support@visiblelegal.co.uk</a>
+      </p>
+
+      <div style="margin-top: 2rem;">
+        <a href="../" class="cta-button">Return to Home</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        // Guard against duplicate Lead events using sessionStorage
+        if (sessionStorage.getItem('lead_fired') === 'true') {
+          console.log('[THANKYOU] Lead event already fired, skipping');
+          return;
+        }
+
+        // Check consent and send Lead event
+        if (window.FBCapture && window.ENV.MAKE_CAPI_WEBHOOK_URL) {
+          FBCapture.ensurePixel();
+          FBCapture.sendLead(window.ENV.MAKE_CAPI_WEBHOOK_URL);
+          sessionStorage.setItem('lead_fired', 'true');
+          
+          if (window.ENV.FBCAPTURE_DEBUG === 'true') {
+            console.log('[THANKYOU] Lead event sent successfully');
+          }
+        }
+      } catch (error) {
+        if (window.ENV.FBCAPTURE_DEBUG === 'true') {
+          console.warn('[THANKYOU] Error during tracking:', error);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
